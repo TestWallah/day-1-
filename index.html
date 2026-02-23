@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPSC & SSC Paid Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;600;800&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', 'Noto Sans Devanagari', sans-serif;
+            background: linear-gradient(-45deg, #0f172a, #1e1b4b, #312e81, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .option-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #6366f1;
+        }
+
+        .correct-ans {
+            background: linear-gradient(135deg, #10b981, #059669) !important;
+            border-color: #059669 !important;
+            color: white;
+            animation: popIn 0.3s ease-out;
+        }
+
+        .wrong-ans {
+            background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+            border-color: #dc2626 !important;
+            color: white;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.95); opacity: 0; }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .hidden-screen {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar for review screen */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #4f46e5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6366f1; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="glass-panel max-w-lg w-full rounded-3xl p-8 text-center fade-in">
+        <div class="mb-6 flex justify-center">
+            <span class="text-6xl">🎓</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">
+            UPSC & SSC Paid Quiz
+        </h1>
+        <p class="text-gray-300 mb-8 text-sm md:text-base leading-relaxed">
+            यह भारत की राजव्यवस्था (Indian Polity) का सबसे कठिन लेवल का टेस्ट है। इसमें 50 बेहतरीन क्वालिटी के प्रश्न हैं जो आपकी असली तैयारी की परीक्षा लेंगे। क्या आप तैयार हैं?
+        </p>
+        <button onclick="startQuiz()" class="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 font-bold text-lg shadow-lg shadow-indigo-500/30 transition-all transform hover:scale-105 active:scale-95">
+            Start Quiz 🔥
+        </button>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="quiz-screen" class="glass-panel max-w-3xl w-full rounded-3xl p-6 md:p-10 hidden-screen flex flex-col">
+        <div class="flex justify-between items-center mb-6">
+            <span id="question-tracker" class="px-4 py-1.5 rounded-full bg-indigo-900/50 text-indigo-300 text-sm font-semibold border border-indigo-500/30">
+                Q: 1 / 50
+            </span>
+            <div class="text-sm font-semibold text-gray-400 bg-black/20 px-4 py-1.5 rounded-full">
+                Polity Expert Level 🏆
+            </div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-700 rounded-full h-2.5 mb-8">
+            <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-500" style="width: 2%"></div>
+        </div>
+
+        <h2 id="question-text" class="text-xl md:text-2xl font-bold mb-8 leading-relaxed text-gray-100 min-h-[80px]">
+            <!-- Question goes here -->
+        </h2>
+
+        <div id="options-container" class="space-y-4 mb-8">
+            <!-- Options go here -->
+        </div>
+
+        <div class="mt-auto flex justify-end">
+            <button id="next-btn" onclick="handleNext()" class="hidden py-3 px-8 rounded-xl bg-white text-indigo-900 font-bold shadow-lg hover:bg-gray-100 transition-all transform hover:-translate-y-1">
+                Next Question ➔
+            </button>
+        </div>
+    </div>
+
+    <!-- WHATSAPP POPUP MODAL -->
+    <div id="whatsapp-modal" class="fixed inset-0 z-50 hidden-screen flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="glass-panel max-w-md w-full rounded-2xl p-8 text-center fade-in bg-slate-900 border border-green-500/30">
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/40 popIn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.347-.272.297-1.04 1.016-1.04 2.479 0 1.463 1.065 2.876 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            </div>
+            <h3 class="text-2xl font-bold mb-2">Taiyari ko aur behtar banayein!</h3>
+            <p class="text-gray-300 mb-6 text-sm">
+                Daily free mock tests, UPSC notes aur important updates ke liye hamara WhatsApp Group abhi join karein. (Free of cost)
+            </p>
+            <div class="space-y-3">
+                <a href="https://whatsapp.com/channel/0029Vb7hCXa8fewnHZbLKP0L" target="_blank" onclick="closeWhatsapp()" class="block w-full py-3 rounded-xl bg-green-600 hover:bg-green-500 font-bold text-lg shadow-lg shadow-green-500/30 transition-all">
+                    Join WhatsApp Now 💬
+                </a>
+                <button onclick="closeWhatsapp()" class="block w-full py-3 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-300 font-semibold transition-all">
+                    Skip & Continue Quiz ➔
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="result-screen" class="glass-panel max-w-lg w-full rounded-3xl p-8 text-center hidden-screen">
+        <h2 class="text-3xl font-bold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">Quiz Completed! 🎉</h2>
+        
+        <div class="flex justify-center mb-6">
+            <div class="relative w-40 h-40">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path class="text-gray-700" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path id="score-circle" class="text-emerald-500 transition-all duration-1000 ease-out" stroke-dasharray="0, 100" stroke-width="3" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="final-score" class="text-4xl font-black text-white">0</span>
+                    <span class="text-xs text-gray-400 font-semibold">out of 50</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div class="bg-black/20 p-4 rounded-xl border border-white/5">
+                <p class="text-gray-400 text-sm mb-1">Accuracy</p>
+                <p id="accuracy-text" class="text-2xl font-bold text-blue-400">0%</p>
+            </div>
+            <div class="bg-black/20 p-4 rounded-xl border border-white/5">
+                <p class="text-gray-400 text-sm mb-1">Status</p>
+                <p id="status-text" class="text-lg font-bold text-orange-400">Needs Work</p>
+            </div>
+        </div>
+
+        <button onclick="showReview()" class="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 font-bold text-lg shadow-lg shadow-blue-500/30 transition-all mb-4">
+            गलतियां देखें (Review Answers) 🔍
+        </button>
+        <button onclick="location.reload()" class="w-full py-3 rounded-xl bg-white/10 hover:bg-white/20 font-semibold transition-all">
+            Restart Quiz 🔄
+        </button>
+    </div>
+
+    <!-- REVIEW SCREEN -->
+    <div id="review-screen" class="glass-panel max-w-4xl w-full h-[90vh] rounded-3xl p-6 flex flex-col hidden-screen">
+        <div class="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+            <h2 class="text-2xl font-bold">Answer Review 📝</h2>
+            <button onclick="hideReview()" class="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-all font-semibold">
+                Close ✖
+            </button>
+        </div>
+        <div id="review-container" class="flex-1 overflow-y-auto pr-2 space-y-6">
+            <!-- Review items dynamically injected here -->
+        </div>
+    </div>
+
+    <script>
+        // UPSC Level Polity & Constitution Questions (50 Premium Quality MCQs in Hindi)
+        const quizData = [
+            {
+                q: "संविधान की 9वीं अनुसूची के संदर्भ में, निम्नलिखित में से कौन सा कथन सही है?",
+                opt: ["इसे 42वें संशोधन द्वारा जोड़ा गया था।", "इसमें शामिल कानूनों की न्यायिक समीक्षा नहीं हो सकती (1973 के बाद भी)।", "इसे प्रथम संविधान संशोधन (1951) द्वारा जोड़ा गया था।", "यह केवल दलबदल विरोधी कानून से संबंधित है।"],
+                ans: 2,
+                exp: "9वीं अनुसूची को प्रथम संविधान संशोधन (1951) द्वारा जोड़ा गया था। सुप्रीम कोर्ट (IR Coelho case 2007) के अनुसार 24 अप्रैल 1973 के बाद इसमें डाले गए कानूनों की न्यायिक समीक्षा हो सकती है।"
+            },
+            {
+                q: "अनुच्छेद 32 और अनुच्छेद 226 के तहत रिट (Writ) क्षेत्राधिकार के बारे में क्या सत्य है?",
+                opt: ["सुप्रीम कोर्ट का रिट क्षेत्राधिकार हाईकोर्ट से अधिक व्यापक है।", "हाईकोर्ट केवल मौलिक अधिकारों के लिए रिट जारी कर सकता है।", "हाईकोर्ट का रिट क्षेत्राधिकार सुप्रीम कोर्ट से अधिक व्यापक है।", "दोनों केवल मौलिक अधिकारों के लिए रिट जारी कर सकते हैं।"],
+                ans: 2,
+                exp: "हाईकोर्ट (अनुच्छेद 226) मौलिक अधिकारों के साथ-साथ 'अन्य उद्देश्यों' (कानूनी अधिकारों) के लिए भी रिट जारी कर सकता है, जबकि सुप्रीम कोर्ट (अनुच्छेद 32) केवल मौलिक अधिकारों के लिए।"
+            },
+            {
+                q: "भारत के राष्ट्रपति पर महाभियोग (Impeachment) चलाने के लिए क्या आधार है?",
+                opt: ["साबित कदाचार या असमर्थता", "संविधान का उल्लंघन", "भ्रष्टाचार", "प्रधानमंत्री की सलाह न मानना"],
+                ans: 1,
+                exp: "अनुच्छेद 61 के तहत राष्ट्रपति पर महाभियोग केवल एक ही आधार पर चलाया जा सकता है - 'संविधान का उल्लंघन (Violation of the Constitution)'।"
+            },
+            {
+                q: "धन विधेयक (Money Bill) के संबंध में निम्नलिखित में से कौन सा कथन गलत है?",
+                opt: ["यह केवल लोकसभा में पेश किया जा सकता है।", "इसे राष्ट्रपति की पूर्व सहमति से पेश किया जाता है।", "राज्यसभा इसे अधिकतम 14 दिनों तक रोक सकती है।", "इस पर गतिरोध होने पर राष्ट्रपति संयुक्त बैठक बुला सकते हैं।"],
+                ans: 3,
+                exp: "धन विधेयक के मामले में संयुक्त बैठक (Joint Sitting - Art 108) का कोई प्रावधान नहीं है क्योंकि इसमें लोकसभा को एकाधिकार प्राप्त है।"
+            },
+            {
+                q: "नीति निर्देशक तत्वों (DPSP) और मौलिक अधिकारों (FR) के बीच टकराव में, 42वें संशोधन ने किसे प्राथमिकता दी?",
+                opt: ["सभी DPSP को सभी FR (अनुच्छेद 14, 19, 31) पर प्राथमिकता दी।", "केवल अनुच्छेद 39(b) और (c) को प्राथमिकता दी।", "मौलिक अधिकारों को पूर्ण प्राथमिकता दी।", "दोनों को समान माना गया।"],
+                ans: 0,
+                exp: "42वें संशोधन (1976) ने सभी DPSP को अनुच्छेद 14, 19 और 31 पर प्राथमिकता दी थी। हालांकि, मिनर्वा मिल्स केस (1980) में सुप्रीम कोर्ट ने इसे असंवैधानिक घोषित कर दिया।"
+            },
+            {
+                q: "सुप्रीम कोर्ट के 'मूल संरचना' (Basic Structure) सिद्धांत का प्रतिपादन किस वाद में हुआ?",
+                opt: ["गोलकनाथ वाद (1967)", "मिनर्वा मिल्स वाद (1980)", "केशवानंद भारती वाद (1973)", "एस. आर. बोम्मई वाद (1994)"],
+                ans: 2,
+                exp: "केशवानंद भारती वाद (1973) में 13 जजों की बेंच ने ऐतिहासिक फैसला सुनाते हुए 'मूल संरचना' का सिद्धांत दिया कि संसद संविधान के मूल ढांचे को नहीं बदल सकती।"
+            },
+            {
+                q: "संविधान की प्रस्तावना (Preamble) में 'समाजवादी, धर्मनिरपेक्ष और अखंडता' शब्द किस संशोधन द्वारा जोड़े गए?",
+                opt: ["44वें संशोधन", "42वें संशोधन", "73वें संशोधन", "86वें संशोधन"],
+                ans: 1,
+                exp: "42वें संविधान संशोधन (1976) द्वारा प्रस्तावना में ये तीन शब्द (Socialist, Secular, Integrity) जोड़े गए। इसे 'मिनी कॉन्स्टिट्यूशन' भी कहा जाता है।"
+            },
+            {
+                q: "भारतीय संविधान का कौन सा अनुच्छेद 'समान नागरिक संहिता' (Uniform Civil Code) का प्रावधान करता है?",
+                opt: ["अनुच्छेद 40", "अनुच्छेद 44", "अनुच्छेद 48", "अनुच्छेद 50"],
+                ans: 1,
+                exp: "अनुच्छेद 44 (राज्य के नीति निदेशक तत्व) राज्य को निर्देश देता है कि वह भारत के पूरे क्षेत्र में नागरिकों के लिए एक समान नागरिक संहिता सुनिश्चित करे।"
+            },
+            {
+                q: "भारत के नियंत्रक और महालेखा परीक्षक (CAG) की नियुक्ति कौन करता है और उसका कार्यकाल कितना होता है?",
+                opt: ["प्रधानमंत्री, 5 वर्ष या 65 वर्ष आयु", "राष्ट्रपति, 6 वर्ष या 65 वर्ष आयु", "संसद, 6 वर्ष या 60 वर्ष आयु", "राष्ट्रपति, 5 वर्ष या 65 वर्ष आयु"],
+                ans: 1,
+                exp: "CAG की नियुक्ति राष्ट्रपति द्वारा की जाती है और उनका कार्यकाल 6 वर्ष या 65 वर्ष की आयु (जो भी पहले हो) तक होता है। (अनुच्छेद 148)"
+            },
+            {
+                q: "एंटी-डिफेक्शन लॉ (दलबदल विरोधी कानून) संविधान की किस अनुसूची में है?",
+                opt: ["8वीं अनुसूची", "9वीं अनुसूची", "10वीं अनुसूची", "11वीं अनुसूची"],
+                ans: 2,
+                exp: "10वीं अनुसूची को 52वें संविधान संशोधन (1985) द्वारा जोड़ा गया था। यह सांसदों और विधायकों के दलबदल को रोकने का प्रावधान करती है।"
+            },
+            {
+                q: "राष्ट्रपति अध्यादेश (Ordinance) प्रख्यापित कर सकता है जब:",
+                opt: ["केवल जब लोकसभा सत्र में न हो", "केवल जब राज्यसभा सत्र में न हो", "जब संसद के दोनों सदन या कोई एक सदन सत्र में न हो", "जब प्रधानमंत्री सलाह दें"],
+                ans: 2,
+                exp: "अनुच्छेद 123 के तहत राष्ट्रपति तब अध्यादेश जारी कर सकते हैं जब संसद के दोनों या कोई एक सदन सत्र में न हो, क्योंकि कानून बनाने के लिए दोनों सदनों का होना ज़रूरी है।"
+            },
+            {
+                q: "संविधान का अनुच्छेद 21-A (शिक्षा का अधिकार) किस संशोधन द्वारा जोड़ा गया?",
+                opt: ["86वें संशोधन", "89वें संशोधन", "92वें संशोधन", "97वें संशोधन"],
+                ans: 0,
+                exp: "86वें संशोधन अधिनियम, 2002 ने अनुच्छेद 21A जोड़ा, जिसके तहत 6 से 14 वर्ष के बच्चों के लिए मुफ्त और अनिवार्य शिक्षा एक मौलिक अधिकार बन गई।"
+            },
+            {
+                q: "निम्नलिखित में से कौन सा मौलिक अधिकार केवल भारतीय नागरिकों को प्राप्त है, विदेशियों को नहीं?",
+                opt: ["कानून के समक्ष समानता (Art 14)", "जीवन और व्यक्तिगत स्वतंत्रता (Art 21)", "वाक् और अभिव्यक्ति की स्वतंत्रता (Art 19)", "शोषण के विरुद्ध अधिकार (Art 23)"],
+                ans: 2,
+                exp: "अनुच्छेद 15, 16, 19, 29 और 30 में दिए गए मौलिक अधिकार केवल भारतीय नागरिकों को उपलब्ध हैं, विदेशी नागरिकों को नहीं।"
+            },
+            {
+                q: "राज्यसभा का पदेन सभापति (Ex-officio Chairman) कौन होता है?",
+                opt: ["राष्ट्रपति", "उपराष्ट्रपति", "प्रधानमंत्री", "राज्यसभा का सबसे वरिष्ठ सदस्य"],
+                ans: 1,
+                exp: "अनुच्छेद 64 और 89 के अनुसार, भारत का उपराष्ट्रपति राज्यसभा का पदेन सभापति होता है।"
+            },
+            {
+                q: "पंचायती राज संस्थाओं को संवैधानिक दर्जा किस संशोधन के तहत दिया गया?",
+                opt: ["72वां संशोधन", "73वां संशोधन", "74वां संशोधन", "76वां संशोधन"],
+                ans: 1,
+                exp: "73वें संविधान संशोधन (1992) द्वारा पंचायती राज संस्थाओं को संवैधानिक दर्जा दिया गया और संविधान में भाग IX जोड़ा गया।"
+            },
+            {
+                q: "राष्ट्रीय आपातकाल (National Emergency) के दौरान कौन से मौलिक अधिकार निलंबित नहीं किए जा सकते?",
+                opt: ["अनुच्छेद 19", "अनुच्छेद 14 और 15", "अनुच्छेद 20 और 21", "अनुच्छेद 32"],
+                ans: 2,
+                exp: "44वें संशोधन (1978) के अनुसार, आपातकाल के दौरान भी अनुच्छेद 20 (अपराधों के लिए दोषसिद्धि के संबंध में संरक्षण) और 21 (जीवन और व्यक्तिगत स्वतंत्रता) को निलंबित नहीं किया जा सकता।"
+            },
+            {
+                q: "संसद के दोनों सदनों की संयुक्त बैठक (Joint Sitting) की अध्यक्षता कौन करता है?",
+                opt: ["भारत के राष्ट्रपति", "उपराष्ट्रपति", "लोकसभा अध्यक्ष (Speaker)", "प्रधानमंत्री"],
+                ans: 2,
+                exp: "अनुच्छेद 108 के तहत राष्ट्रपति संयुक्त बैठक बुलाते हैं, लेकिन इसकी अध्यक्षता हमेशा लोकसभा अध्यक्ष (Speaker) करते हैं।"
+            },
+            {
+                q: "संविधान की 8वीं अनुसूची में वर्तमान में कितनी मान्यता प्राप्त भाषाएँ हैं?",
+                opt: ["14", "18", "22", "24"],
+                ans: 2,
+                exp: "मूल रूप से 14 भाषाएँ थीं। बाद में संशोधनों (21वें, 71वें, 92वें) के माध्यम से सिंधी, कोंकणी, मणिपुरी, नेपाली, बोडो, डोगरी, मैथिली और संथाली को जोड़कर कुल 22 भाषाएँ हो गई हैं।"
+            },
+            {
+                q: "राज्य लोक सेवा आयोग (SPSC) के अध्यक्ष और सदस्यों को कौन हटा सकता है?",
+                opt: ["राज्यपाल", "मुख्यमंत्री", "भारत के राष्ट्रपति", "हाईकोर्ट के मुख्य न्यायाधीश"],
+                ans: 2,
+                exp: "नियुक्ति राज्यपाल करता है, लेकिन उन्हें केवल भारत के राष्ट्रपति द्वारा सुप्रीम कोर्ट की जांच के बाद उसी आधार पर हटाया जा सकता है जिस आधार पर UPSC के सदस्यों को हटाया जाता है।"
+            },
+            {
+                q: "'बंदी प्रत्यक्षीकरण' (Habeas Corpus) रिट का शाब्दिक अर्थ क्या है?",
+                opt: ["हम आदेश देते हैं", "किस अधिकार से", "शरीर को प्रस्तुत किया जाए (To have the body of)", "प्रमाणित होना"],
+                ans: 2,
+                exp: "Habeas Corpus एक लैटिन शब्द है जिसका अर्थ है 'शरीर को हमारे सामने प्रस्तुत करो'। यह अवैध हिरासत के खिलाफ सुरक्षा प्रदान करता है।"
+            },
+            {
+                q: "संविधान के किस अनुच्छेद के तहत वित्तीय आपातकाल (Financial Emergency) घोषित किया जा सकता है?",
+                opt: ["अनुच्छेद 352", "अनुच्छेद 356", "अनुच्छेद 360", "अनुच्छेद 365"],
+                ans: 2,
+                exp: "अनुच्छेद 360 राष्ट्रपति को वित्तीय आपातकाल घोषित करने का अधिकार देता है। भारत में आज तक कभी वित्तीय आपातकाल लागू नहीं हुआ है।"
+            },
+            {
+                q: "चुनाव आयोग (Election Commission) एक: ",
+                opt: ["सांविधिक निकाय (Statutory Body) है", "संवैधानिक निकाय (Constitutional Body) है", "गैर-संवैधानिक निकाय है", "कार्यकारी निकाय है"],
+                ans: 1,
+                exp: "चुनाव आयोग एक संवैधानिक निकाय है क्योंकि इसका सीधा उल्लेख संविधान के अनुच्छेद 324 में किया गया है।"
+            },
+            {
+                q: "प्रोटेम स्पीकर (Pro-tem Speaker) का मुख्य कार्य क्या होता है?",
+                opt: ["स्पीकर की अनुपस्थिति में कार्यवाही चलाना", "नवनिर्वाचित सदस्यों को शपथ दिलाना", "विपक्ष के नेता का चुनाव करना", "धन विधेयक को प्रमाणित करना"],
+                ans: 1,
+                exp: "प्रोटेम स्पीकर (अस्थायी अध्यक्ष) राष्ट्रपति द्वारा नियुक्त होता है और इसका मुख्य काम नई लोकसभा के सदस्यों को शपथ दिलाना होता है।"
+            },
+            {
+                q: "भारत के अटॉर्नी जनरल (Attorney General) के बारे में क्या सही नहीं है?",
+                opt: ["उन्हें राष्ट्रपति नियुक्त करता है।", "वे संसद की कार्यवाही में भाग ले सकते हैं।", "वे संसद में मतदान कर सकते हैं।", "उन्हें वही योग्यता चाहिए जो सुप्रीम कोर्ट के जज की होती है।"],
+                ans: 2,
+                exp: "अनुच्छेद 88 के तहत महान्यायवादी (Attorney General) संसद के दोनों सदनों की कार्यवाही में बोल सकते हैं और भाग ले सकते हैं, लेकिन उन्हें वोट (मतदान) देने का अधिकार नहीं है।"
+            },
+            {
+                q: "मार्शल लॉ (Military Rule) से संबंधित प्रावधान संविधान के किस अनुच्छेद में हैं?",
+                opt: ["अनुच्छेद 31", "अनुच्छेद 33", "अनुच्छेद 34", "अनुच्छेद 35"],
+                ans: 2,
+                exp: "अनुच्छेद 34 किसी भी क्षेत्र में 'मार्शल लॉ' (सैन्य शासन) लागू होने पर मौलिक अधिकारों पर प्रतिबंध लगाता है।"
+            },
+            {
+                q: "संसद के दो सत्रों के बीच अधिकतम कितना अंतर (Gap) हो सकता है?",
+                opt: ["3 महीने", "6 महीने", "9 महीने", "1 वर्ष"],
+                ans: 1,
+                exp: "संविधान के अनुसार संसद के दो सत्रों के बीच अधिकतम छह महीने का अंतर हो सकता है। इसलिए संसद को वर्ष में कम से कम दो बार मिलना अनिवार्य है।"
+            },
+            {
+                q: "कौन सा अनुच्छेद अस्पृश्यता (Untouchability) का अंत करता है?",
+                opt: ["अनुच्छेद 15", "अनुच्छेद 16", "अनुच्छेद 17", "अनुच्छेद 18"],
+                ans: 2,
+                exp: "अनुच्छेद 17 अस्पृश्यता का अंत करता है और किसी भी रूप में इसके अभ्यास को दंडनीय अपराध बनाता है।"
+            },
+            {
+                q: "राज्यों के नीति निदेशक सिद्धांत (DPSP) किस देश के संविधान से लिए गए हैं?",
+                opt: ["अमेरिका", "आयरलैंड", "ब्रिटेन", "कनाडा"],
+                ans: 1,
+                exp: "DPSP को आयरिश संविधान (आयरलैंड) से लिया गया है। आयरलैंड ने इसे स्पेन के संविधान से कॉपी किया था।"
+            },
+            {
+                q: "संविधान का अनुच्छेद 371-A किस राज्य को विशेष दर्जा प्रदान करता है?",
+                opt: ["जम्मू और कश्मीर", "असम", "नागालैंड", "सिक्किम"],
+                ans: 2,
+                exp: "अनुच्छेद 371A नागालैंड राज्य के संबंध में विशेष प्रावधान करता है, जो वहां की धार्मिक और सामाजिक प्रथाओं की रक्षा करता है।"
+            },
+            {
+                q: "राज्यपाल द्वारा जारी अध्यादेश की अधिकतम अवधि कितनी होती है, यदि राज्य विधानमंडल सत्र में आ जाए?",
+                opt: ["6 सप्ताह", "6 महीने", "3 सप्ताह", "14 दिन"],
+                ans: 0,
+                exp: "विधानमंडल के पुनः समवेत (Reassemble) होने के 6 सप्ताह के भीतर अध्यादेश को मंजूरी मिलनी चाहिए, अन्यथा वह समाप्त हो जाता है।"
+            },
+            {
+                q: "किस संशोधन द्वारा मतदान की आयु 21 वर्ष से घटाकर 18 वर्ष कर दी गई?",
+                opt: ["42वां संशोधन", "44वां संशोधन", "61वां संशोधन", "73वां संशोधन"],
+                ans: 2,
+                exp: "61वें संविधान संशोधन अधिनियम (1988) द्वारा मतदान की आयु 21 से घटाकर 18 वर्ष कर दी गई, जो 1989 से लागू हुआ।"
+            },
+            {
+                q: "सुप्रीम कोर्ट के न्यायाधीशों की संख्या बढ़ाने का अधिकार किसके पास है?",
+                opt: ["भारत के मुख्य न्यायाधीश", "राष्ट्रपति", "संसद", "कानून मंत्रालय"],
+                ans: 2,
+                exp: "संविधान के अनुच्छेद 124 के तहत सुप्रीम कोर्ट में जजों की संख्या बढ़ाने की शक्ति केवल संसद के पास है।"
+            },
+            {
+                q: "राष्ट्रीय मानवाधिकार आयोग (NHRC) के अध्यक्ष कौन हो सकते हैं?",
+                opt: ["सुप्रीम कोर्ट का कोई भी वर्तमान जज", "सुप्रीम कोर्ट का सेवानिवृत्त मुख्य न्यायाधीश या जज", "भारत का कोई भी नागरिक", "हाईकोर्ट का सेवानिवृत्त मुख्य न्यायाधीश"],
+                ans: 1,
+                exp: "मानवाधिकार संरक्षण (संशोधन) अधिनियम 2019 के अनुसार, NHRC का अध्यक्ष भारत का पूर्व मुख्य न्यायाधीश (CJI) या सुप्रीम कोर्ट का पूर्व न्यायाधीश हो सकता है।"
+            },
+            {
+                q: "कौन सा अनुच्छेद ग्राम पंचायतों के संगठन से संबंधित है?",
+                opt: ["अनुच्छेद 38", "अनुच्छेद 39A", "अनुच्छेद 40", "अनुच्छेद 43"],
+                ans: 2,
+                exp: "अनुच्छेद 40 (DPSP) राज्य को ग्राम पंचायतों को व्यवस्थित करने और उन्हें स्वशासन की इकाइयों के रूप में कार्य करने की शक्तियां देने का निर्देश देता है।"
+            },
+            {
+                q: "संवैधानिक उपचारों का अधिकार (Right to Constitutional Remedies) संविधान की आत्मा है। यह किसने कहा था?",
+                opt: ["जवाहरलाल नेहरू", "महात्मा गांधी", "डॉ. बी. आर. अंबेडकर", "राजेंद्र प्रसाद"],
+                ans: 2,
+                exp: "डॉ. बी.आर. अंबेडकर ने अनुच्छेद 32 को 'संविधान का हृदय और आत्मा' कहा था क्योंकि यह मौलिक अधिकारों को लागू करने की गारंटी देता है।"
+            },
+            {
+                q: "वित्तीय आयोग (Finance Commission) का गठन कौन करता है और कितने वर्षों में?",
+                opt: ["संसद, 5 वर्ष", "राष्ट्रपति, 5 वर्ष", "प्रधानमंत्री, 4 वर्ष", "वित्त मंत्री, 5 वर्ष"],
+                ans: 1,
+                exp: "अनुच्छेद 280 के तहत राष्ट्रपति हर 5 साल में (या आवश्यकतानुसार पहले) वित्त आयोग का गठन करते हैं। इसका मुख्य काम केंद्र और राज्यों के बीच करों का बंटवारा सुझाना है।"
+            },
+            {
+                q: "सरकारीिया आयोग (Sarkaria Commission) का संबंध किससे है?",
+                opt: ["चुनाव सुधार", "केंद्र-राज्य संबंध", "पुलिस सुधार", "वित्तीय सुधार"],
+                ans: 1,
+                exp: "आर.एस. सरकारीया की अध्यक्षता में 1983 में सरकारीिया आयोग का गठन केंद्र और राज्य सरकारों के बीच संबंधों और शक्ति संतुलन की समीक्षा के लिए किया गया था।"
+            },
+            {
+                q: "निम्नलिखित में से कौन वीटो (Veto) का प्रकार भारत के राष्ट्रपति के पास नहीं है?",
+                opt: ["आत्यंतिक वीटो (Absolute Veto)", "निलंबनकारी वीटो (Suspensive Veto)", "जेबी वीटो (Pocket Veto)", "विशेषित वीटो (Qualified Veto)"],
+                ans: 3,
+                exp: "भारतीय राष्ट्रपति के पास क्वालिफाइड वीटो नहीं है (यह अमेरिकी राष्ट्रपति के पास है जिसे उच्च बहुमत से संसद द्वारा ओवरराइड किया जा सकता है)।"
+            },
+            {
+                q: "मंत्रिपरिषद (Council of Ministers) सामूहिक रूप से किसके प्रति उत्तरदायी होती है?",
+                opt: ["राष्ट्रपति", "संसद के दोनों सदन", "लोकसभा", "प्रधानमंत्री"],
+                ans: 2,
+                exp: "अनुच्छेद 75(3) स्पष्ट रूप से कहता है कि मंत्रिपरिषद सामूहिक रूप से केवल 'लोकसभा' (House of the People) के प्रति उत्तरदायी होगी।"
+            },
+            {
+                q: "उपराष्ट्रपति के चुनाव के निर्वाचक मंडल (Electoral College) में कौन शामिल होते हैं?",
+                opt: ["केवल लोकसभा के निर्वाचित सदस्य", "लोकसभा और राज्यसभा के निर्वाचित सदस्य", "संसद के दोनों सदनों के सभी सदस्य (निर्वाचित + मनोनीत)", "संसद और राज्य विधानसभाओं के सदस्य"],
+                ans: 2,
+                exp: "उपराष्ट्रपति के चुनाव में संसद के दोनों सदनों (लोकसभा और राज्यसभा) के सभी सदस्य (निर्वाचित और मनोनीत दोनों) वोट डालते हैं। (अनुच्छेद 66)"
+            },
+            {
+                q: "लोक लेखा समिति (Public Accounts Committee - PAC) में कितने सदस्य होते हैं?",
+                opt: ["15 (सभी लोकसभा से)", "22 (15 लोकसभा, 7 राज्यसभा से)", "30 (सभी लोकसभा से)", "22 (11 लोकसभा, 11 राज्यसभा से)"],
+                ans: 1,
+                exp: "PAC सबसे पुरानी संसदीय समिति है। इसमें 22 सदस्य होते हैं (15 लोकसभा से और 7 राज्यसभा से)। यह CAG की रिपोर्ट की जांच करती है।"
+            },
+            {
+                q: "संविधान का कौन सा भाग 'संविधान संशोधन' से संबंधित है?",
+                opt: ["भाग 18", "भाग 20", "भाग 15", "भाग 22"],
+                ans: 1,
+                exp: "संविधान का भाग XX (20) और अनुच्छेद 368 संसद को संविधान में संशोधन करने की शक्ति और प्रक्रिया प्रदान करता है।"
+            },
+            {
+                q: "अंतरराज्यीय परिषद (Inter-State Council) की स्थापना किस अनुच्छेद के तहत की जाती है?",
+                opt: ["अनुच्छेद 262", "अनुच्छेद 263", "अनुच्छेद 280", "अनुच्छेद 312"],
+                ans: 1,
+                exp: "अनुच्छेद 263 के तहत राष्ट्रपति अंतरराज्यीय परिषद की स्थापना कर सकते हैं ताकि राज्यों के बीच समन्वय और विवादों का समाधान हो सके। (सरकारीिया आयोग की सिफारिश पर 1990 में बनी)"
+            },
+            {
+                q: "किस मौलिक अधिकार को डॉ. अंबेडकर द्वारा 'संविधान की दीवार' (Wall of Constitution) नहीं कहा गया, बल्कि 'मैग्ना कार्टा' भारत के किस भाग को कहा जाता है?",
+                opt: ["भाग II (नागरिकता)", "भाग III (मौलिक अधिकार)", "भाग IV (DPSP)", "भाग V (संघ)"],
+                ans: 1,
+                exp: "भाग III (मौलिक अधिकार - Art 12 to 35) को भारत का 'मैग्ना कार्टा' कहा जाता है, जो नागरिकों के अधिकारों की रक्षा करता है।"
+            },
+            {
+                q: "लोकसभा का अध्यक्ष अपना त्यागपत्र (Resignation) किसे सौंपता है?",
+                opt: ["राष्ट्रपति को", "प्रधानमंत्री को", "सुप्रीम कोर्ट के मुख्य न्यायाधीश को", "लोकसभा के उपाध्यक्ष (Deputy Speaker) को"],
+                ans: 3,
+                exp: "लोकसभा अध्यक्ष अपना इस्तीफा लोकसभा के उपाध्यक्ष को देते हैं और उपाध्यक्ष अपना इस्तीफा अध्यक्ष को देते हैं।"
+            },
+            {
+                q: "प्रशासनिक न्यायाधिकरणों (Administrative Tribunals) का प्रावधान किस संशोधन द्वारा जोड़ा गया?",
+                opt: ["42वां संशोधन", "44वां संशोधन", "73वां संशोधन", "24वां संशोधन"],
+                ans: 0,
+                exp: "42वें संविधान संशोधन (1976) ने संविधान में भाग XIV-A जोड़ा, जिसमें अनुच्छेद 323A (प्रशासनिक न्यायाधिकरण) और 323B शामिल हैं।"
+            },
+            {
+                q: "कौन सा अनुच्छेद यह सुनिश्चित करता है कि कोई भी व्यक्ति एक ही अपराध के लिए दो बार दंडित नहीं किया जाएगा (Double Jeopardy)?",
+                opt: ["अनुच्छेद 19(2)", "अनुच्छेद 20(2)", "अनुच्छेद 21", "अनुच्छेद 22(1)"],
+                ans: 1,
+                exp: "अनुच्छेद 20(2) 'दोहरे दंड से संरक्षण' (Protection against double jeopardy) प्रदान करता है, अर्थात् एक ही अपराध के लिए दो बार सजा नहीं दी जा सकती।"
+            },
+            {
+                q: "भारत में 'न्यायिक समीक्षा' (Judicial Review) का सिद्धांत किस देश से लिया गया है?",
+                opt: ["ब्रिटेन", "यूएसए (USA)", "कनाडा", "आयरलैंड"],
+                ans: 1,
+                exp: "भारत ने न्यायिक समीक्षा, न्यायपालिका की स्वतंत्रता और मौलिक अधिकारों का कॉन्सेप्ट संयुक्त राज्य अमेरिका (USA) के संविधान से लिया है।"
+            },
+            {
+                q: "राज्यसभा का सदस्य बनने के लिए न्यूनतम आयु क्या होनी चाहिए?",
+                opt: ["21 वर्ष", "25 वर्ष", "30 वर्ष", "35 वर्ष"],
+                ans: 2,
+                exp: "संविधान के अनुसार राज्यसभा का सदस्य बनने के लिए न्यूनतम आयु 30 वर्ष होनी चाहिए, जबकि लोकसभा के लिए यह 25 वर्ष है।"
+            },
+            {
+                q: "किसी विधेयक को धन विधेयक (Money Bill) घोषित करने का अंतिम अधिकार किसके पास है?",
+                opt: ["राष्ट्रपति", "वित्त मंत्री", "लोकसभा अध्यक्ष", "प्रधानमंत्री"],
+                ans: 2,
+                exp: "अनुच्छेद 110(3) के अनुसार, यदि यह प्रश्न उठता है कि कोई विधेयक धन विधेयक है या नहीं, तो लोकसभा अध्यक्ष (Speaker) का निर्णय अंतिम होता है।"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let whatsappShown = false;
+
+        // Elements
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const reviewScreen = document.getElementById('review-screen');
+        const whatsappModal = document.getElementById('whatsapp-modal');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const nextBtn = document.getElementById('next-btn');
+        const progressBar = document.getElementById('progress-bar');
+        const questionTracker = document.getElementById('question-tracker');
+
+        function startQuiz() {
+            startScreen.classList.add('hidden-screen');
+            quizScreen.classList.remove('hidden-screen');
+            loadQuestion(0);
+        }
+
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const currentQData = quizData[index];
+            
+            // Update UI trackers
+            questionTracker.innerText = `Q: ${index + 1} / ${quizData.length}`;
+            progressBar.style.width = `${((index + 1) / quizData.length) * 100}%`;
+            
+            questionText.innerText = currentQData.q;
+            optionsContainer.innerHTML = '';
+            nextBtn.classList.add('hidden');
+
+            currentQData.opt.forEach((optionText, optIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white font-medium mb-3 relative overflow-hidden';
+                btn.innerText = optionText;
+                btn.onclick = () => selectOption(optIndex, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function selectOption(selectedIndex, btnElement) {
+            const currentQData = quizData[currentQuestionIndex];
+            const allButtons = optionsContainer.querySelectorAll('button');
+            
+            // Disable all buttons after selection
+            allButtons.forEach(btn => btn.disabled = true);
+
+            const isCorrect = selectedIndex === currentQData.ans;
+            
+            if (isCorrect) {
+                score++;
+                btnElement.classList.add('correct-ans');
+            } else {
+                btnElement.classList.add('wrong-ans');
+                // Highlight correct answer
+                allButtons[currentQData.ans].classList.add('correct-ans');
+                allButtons[currentQData.ans].classList.remove('bg-white/5', 'hover:bg-white/10');
+            }
+
+            // Save user answer
+            userAnswers.push({
+                qIndex: currentQuestionIndex,
+                selected: selectedIndex,
+                isCorrect: isCorrect
+            });
+
+            nextBtn.classList.remove('hidden');
+            nextBtn.classList.add('fade-in');
+        }
+
+        function handleNext() {
+            // Check for WhatsApp popup after 5th question
+            if (currentQuestionIndex === 4 && !whatsappShown) {
+                showWhatsapp();
+                return;
+            }
+
+            if (currentQuestionIndex < quizData.length - 1) {
+                loadQuestion(currentQuestionIndex + 1);
+            } else {
+                showResult();
+            }
+        }
+
+        function showWhatsapp() {
+            whatsappShown = true;
+            whatsappModal.classList.remove('hidden-screen');
+        }
+
+        function closeWhatsapp() {
+            whatsappModal.classList.add('hidden-screen');
+            if (currentQuestionIndex < quizData.length - 1) {
+                loadQuestion(currentQuestionIndex + 1);
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            quizScreen.classList.add('hidden-screen');
+            resultScreen.classList.remove('hidden-screen');
+            
+            document.getElementById('final-score').innerText = score;
+            const accuracy = ((score / quizData.length) * 100).toFixed(1);
+            document.getElementById('accuracy-text').innerText = `${accuracy}%`;
+
+            const scoreCircle = document.getElementById('score-circle');
+            scoreCircle.style.strokeDasharray = `${accuracy}, 100`;
+
+            const statusText = document.getElementById('status-text');
+            if (accuracy >= 80) {
+                statusText.innerText = "Excellent! UPSC Ready 👑";
+                statusText.className = "text-lg font-bold text-emerald-400";
+            } else if (accuracy >= 50) {
+                statusText.innerText = "Good, Keep Revising 📚";
+                statusText.className = "text-lg font-bold text-yellow-400";
+            } else {
+                statusText.innerText = "Need Hard Work 💪";
+                statusText.className = "text-lg font-bold text-red-400";
+            }
+        }
+
+        function showReview() {
+            resultScreen.classList.add('hidden-screen');
+            reviewScreen.classList.remove('hidden-screen');
+            
+            const reviewContainer = document.getElementById('review-container');
+            reviewContainer.innerHTML = '';
+
+            quizData.forEach((qData, index) => {
+                const userAnswerData = userAnswers.find(ua => ua.qIndex === index);
+                const userChoiceIndex = userAnswerData ? userAnswerData.selected : -1;
+                const isCorrect = userAnswerData ? userAnswerData.isCorrect : false;
+
+                let borderClass = isCorrect ? 'border-green-500/50' : 'border-red-500/50';
+                let statusBadge = isCorrect 
+                    ? '<span class="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold">सही ✔</span>' 
+                    : '<span class="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs font-bold">गलत ✖</span>';
+
+                const reviewEl = document.createElement('div');
+                reviewEl.className = `p-5 rounded-2xl bg-black/20 border ${borderClass}`;
+                
+                reviewEl.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <h4 class="font-semibold text-gray-100 flex-1 pr-4">Q${index + 1}: ${qData.q}</h4>
+                        ${statusBadge}
+                    </div>
+                    <div class="space-y-2 mb-4 text-sm">
+                        <div class="p-2 rounded bg-white/5 text-gray-300">
+                            <span class="font-bold">आपका जवाब:</span> ${userChoiceIndex !== -1 ? qData.opt[userChoiceIndex] : 'Missed'}
+                        </div>
+                        ${!isCorrect ? `
+                        <div class="p-2 rounded bg-green-500/10 text-green-300">
+                            <span class="font-bold">सही जवाब:</span> ${qData.opt[qData.ans]}
+                        </div>
+                        ` : ''}
+                    </div>
+                    <div class="p-3 bg-indigo-900/30 border border-indigo-500/20 rounded-xl">
+                        <p class="text-sm text-indigo-200"><span class="font-bold">💡 व्याख्या:</span> ${qData.exp}</p>
+                    </div>
+                `;
+                reviewContainer.appendChild(reviewEl);
+            });
+        }
+
+        function hideReview() {
+            reviewScreen.classList.add('hidden-screen');
+            resultScreen.classList.remove('hidden-screen');
+        }
+
+    </script>
+</body>
+</html>
